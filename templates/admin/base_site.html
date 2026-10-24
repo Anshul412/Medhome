@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title }}{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+  <div id="site-name">
+    <a href="{% url 'admin:index' %}">
+      <span class="admin-brand-mark" aria-hidden="true">+</span>
+      <span>MedHome Database</span>
+    </a>
+  </div>
+{% endblock %}
+
+{% block nav-global %}
+  <div class="admin-header-caption">Patient care records</div>
+{% endblock %}

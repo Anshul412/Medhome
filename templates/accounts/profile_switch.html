@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Select patient | MedHome{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-xl rounded-xl bg-white p-6 shadow-sm">
+  <h1 class="mb-6 text-2xl font-semibold">Select a patient profile</h1>
+  {% if active_profile %}<p class="mb-4 text-slate-600">Current profile: {{ active_profile.full_name }}</p>{% endif %}
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    {% if form.errors %}
+      <div class="rounded-lg border-2 border-red-800 bg-red-50 p-4 text-red-950" role="alert">
+        <h2 class="font-bold">Profile was not switched</h2>
+        {{ form.errors }}
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+    {{ form.as_p }}
+    <button class="rounded bg-teal-700 px-4 py-2 font-medium text-white" type="submit">Use this profile</button>
+  </form>
+  <a class="mt-5 inline-block text-teal-700 underline" href="{% url 'accounts:profile_create' %}">Add another profile</a>
+</section>
+{% endblock %}

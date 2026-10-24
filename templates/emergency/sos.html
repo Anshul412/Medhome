@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Emergency SOS | MedHome{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-6">
+  <header class="rounded-2xl border-4 border-red-800 bg-white p-5 shadow-sm sm:p-7">
+    <p class="text-lg font-extrabold uppercase tracking-wide text-red-900">Emergency support</p>
+    <h1 class="text-3xl font-extrabold sm:text-4xl">SOS · {{ profile.full_name }}</h1>
+    <p class="mt-2 text-lg text-slate-800">If someone is in immediate danger, call local emergency services now.</p>
+    <div class="mt-5 grid gap-3 sm:grid-cols-2">
+      {% if primary_contact %}
+        {% if primary_contact.tel_target %}
+          <a class="flex min-h-20 items-center justify-center rounded-xl bg-red-800 px-5 py-4 text-center text-xl font-extrabold text-white shadow hover:bg-red-950" href="tel:{{ primary_contact.tel_target }}">
+            Call {{ primary_contact.contact.name }} · {{ primary_contact.contact.phone_number }}
+          </a>
+        {% endif %}
+      {% endif %}
+      {% for number in ambulance_numbers %}
+        <a class="flex min-h-20 items-center justify-center rounded-xl border-4 border-red-800 bg-red-50 px-5 py-4 text-center text-xl font-extrabold text-red-950 hover:bg-red-100" href="tel:{{ number }}">
+          Call ambulance / emergency · {{ number }}
+        </a>
+      {% endfor %}
+      {% if emergency_number and emergency_number not in ambulance_numbers %}
+        <a class="flex min-h-20 items-center justify-center rounded-xl border-4 border-red-800 bg-red-50 px-5 py-4 text-center text-xl font-extrabold text-red-950 hover:bg-red-100" href="tel:{{ emergency_number }}">
+          Call configured local emergency line · {{ emergency_number }}
+        </a>
+      {% endif %}
+    </div>
+    {% if not contacts %}
+      <p class="mt-4 rounded-lg border-2 border-amber-800 bg-amber-50 p-3 font-bold text-amber-950">No emergency contacts are saved. Use the emergency services buttons above.</p>
+    {% endif %}
+    <p class="mt-3 text-sm text-slate-700">Emergency numbers depend on your location. Check that 108 and 112 are valid where you are before relying on them.</p>
+  </header>
+
+  <section class="rounded-2xl border-2 border-slate-300 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="location-heading">
+    <h2 class="text-2xl font-extrabold" id="location-heading">Share your location</h2>
+    <p class="mt-1 text-slate-700">Choose to share location only if it is safe. Your browser will ask for permission; coordinates are not sent until you open a message.</p>
+    {% if primary_contact and primary_contact.tel_target %}
+      <button class="mt-4 min-h-14 w-full rounded-xl bg-teal-900 px-5 py-3 text-lg font-extrabold text-white hover:bg-teal-950 sm:w-auto" type="button" id="share-location-whatsapp" data-phone="{{ primary_contact.tel_target }}">
+        Share Location via WhatsApp
+      </button>
+      <p class="mt-3 font-semibold text-slate-900" id="location-status" role="status" aria-live="polite"></p>
+      <a class="mt-3 hidden font-bold text-teal-900 underline" id="location-map-link" href="#" target="_blank" rel="noopener noreferrer">Review location on Google Maps</a>
+      <a class="mt-3 hidden font-bold text-green-900 underline" id="whatsapp-fallback" href="#" target="_blank" rel="noopener noreferrer">Open WhatsApp message</a>
+    {% else %}
+      <p class="mt-3 rounded-lg border-2 border-amber-800 bg-amber-50 p-3 font-bold text-amber-950">Add a primary emergency contact with a valid phone number to prepare a message.</p>
+    {% endif %}
+  </section>
+
+  <section class="rounded-2xl border-2 border-slate-300 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="ice-heading">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <p class="font-extrabold uppercase tracking-wide text-red-900">In Case of Emergency</p>
+        <h2 class="text-2xl font-extrabold" id="ice-heading">Medical card</h2>
+        <p class="text-lg font-bold">{{ profile.full_name }}</p>
+      </div>
+      <a class="min-h-12 rounded-lg border-2 border-teal-900 px-4 py-2 font-bold text-teal-950" href="{{ ice_url }}">Open public ICE card</a>
+    </div>
+    <dl class="mt-5 grid gap-4 sm:grid-cols-2">
+      <div class="rounded-lg bg-slate-100 p-4">
+        <dt class="font-bold text-slate-800">Blood group</dt>
+        <dd class="text-xl font-extrabold">{{ profile.get_blood_group_display|default:"Not recorded" }}</dd>
+      </div>
+      <div class="rounded-lg bg-slate-100 p-4 sm:col-span-2">
+        <dt class="font-bold text-slate-800">Allergies / emergency notes</dt>
+        <dd class="whitespace-pre-line text-lg">{{ profile.emergency_notes|default:"No emergency notes recorded." }}</dd>
+      </div>
+      <div class="rounded-lg bg-slate-100 p-4 sm:col-span-2">
+        <dt class="font-bold text-slate-800">Recorded chronic conditions</dt>
+        <dd class="whitespace-pre-line text-lg">{{ profile.chronic_conditions|default:"None recorded." }}</dd>
+      </div>
+    </dl>
+    <p class="mt-4 text-sm text-slate-700">Confirm medical details with the patient or their care team. Do not rely on this card as a substitute for emergency assessment.</p>
+  </section>
+
+  <section class="rounded-2xl border-2 border-slate-300 bg-white p-5 shadow-sm sm:p-7">
+    <h2 class="text-2xl font-extrabold">Saved emergency contacts</h2>
+    <ol class="mt-3 space-y-3">
+      {% for item in contacts %}
+        <li class="flex flex-wrap items-center justify-between gap-3 rounded-lg border-2 border-slate-200 p-4">
+          <div>
+            <p class="text-lg font-bold">{{ item.contact.priority }}. {{ item.contact.name }}{% if item.contact.relationship %} · {{ item.contact.relationship }}{% endif %}</p>
+            <p class="text-slate-700">{{ item.contact.phone_number }}</p>
+          </div>
+          {% if item.tel_target %}<a class="min-h-12 rounded-lg bg-red-800 px-5 py-2 font-extrabold text-white" href="tel:{{ item.tel_target }}">Call</a>{% endif %}
+        </li>
+      {% empty %}
+        <li>No contacts saved for this patient.</li>
+      {% endfor %}
+    </ol>
+  </section>
+</section>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'js/emergency.js' %}" defer></script>
+{% endblock %}

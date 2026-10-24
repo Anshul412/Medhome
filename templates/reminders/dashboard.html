@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Reminders | MedHome{% endblock %}
+{% block content %}
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="rounded-xl bg-white p-6 shadow-sm">
+    <h1 class="mb-4 text-2xl font-semibold">Upcoming checkups</h1>
+    <ul class="divide-y divide-slate-200">
+      {% for reminder in checkups %}
+        <li class="py-3">
+          <p class="font-medium">{{ reminder.title }}</p>
+          <p class="text-sm text-slate-600">{{ reminder.due_date }}{% if reminder.doctor_or_lab %} · {{ reminder.doctor_or_lab }}{% endif %} · {{ reminder.get_recurrence_display }}</p>
+        </li>
+      {% empty %}
+        <li>No incomplete checkups.</li>
+      {% endfor %}
+    </ul>
+  </section>
+  <section class="rounded-xl bg-white p-6 shadow-sm">
+    <h2 class="mb-4 text-2xl font-semibold">Today's medication checklist</h2>
+    <ul class="divide-y divide-slate-200">
+      {% for dose in doses %}
+        <li class="flex items-center justify-between gap-4 py-3">
+          <div>
+            <p class="font-medium">{{ dose.medication.medicine_name }}</p>
+            <p class="text-sm text-slate-600">{{ dose.scheduled_time }} · {{ dose.medication.dosage }}</p>
+          </div>
+          <form method="post" action="{% url 'reminders:toggle_dose' dose.pk %}">
+            {% csrf_token %}
+            <button class="rounded border border-teal-700 px-3 py-2 text-sm text-teal-800" type="submit" aria-pressed="{{ dose.is_taken_today|yesno:'true,false' }}">
+              {% if dose.is_taken_today %}Taken{% else %}Mark taken{% endif %}
+            </button>
+          </form>
+        </li>
+      {% empty %}
+        <li>No medication schedules for this profile.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

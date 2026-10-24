@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Vitals dashboard | MedHome{% endblock %}
+{% block content %}
+<section class="mb-7 flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <p class="text-lg font-bold text-teal-900">Health overview</p>
+    <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Vitals dashboard</h1>
+    <p class="mt-1 text-lg text-slate-700">Showing readings for <strong>{{ profile.full_name }}</strong>.</p>
+    {% if latest %}<p class="text-base text-slate-700">Last recorded {{ latest.recorded_at|date:"M j, Y, g:i A" }}</p>{% endif %}
+  </div>
+  <button class="min-h-14 rounded-xl bg-teal-900 px-6 py-3 text-lg font-extrabold text-white shadow hover:bg-teal-950" type="button" id="open-vitals-modal">
+    + Log today's readings
+  </button>
+</section>
+
+<section aria-labelledby="summary-heading">
+  <h2 class="sr-only" id="summary-heading">Latest vital sign summary</h2>
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-xl border-2 border-slate-300 bg-white p-5 shadow-sm">
+      <p class="font-bold text-slate-800">Blood pressure</p>
+      <p class="mt-2 text-3xl font-extrabold">{{ bp_stat.value }}</p>
+      <span class="mt-3 inline-flex rounded-full border-2 px-3 py-1 text-sm font-extrabold
+        {% if bp_stat.tone == 'danger' %}border-red-800 bg-red-100 text-red-950
+        {% elif bp_stat.tone == 'warning' %}border-amber-800 bg-amber-100 text-amber-950
+        {% elif bp_stat.tone == 'normal' %}border-green-800 bg-green-100 text-green-950
+        {% else %}border-slate-500 bg-slate-100 text-slate-900{% endif %}">
+        {% if bp_stat.tone == 'danger' %}Low reading — seek medical advice{% elif bp_stat.tone == 'warning' %}High reading — review with care team{% elif bp_stat.tone == 'normal' %}Recorded{% else %}No reading yet{% endif %}
+      </span>
+    </article>
+    <article class="rounded-xl border-2 border-slate-300 bg-white p-5 shadow-sm">
+      <p class="font-bold text-slate-800">Blood oxygen (SpO2)</p>
+      <p class="mt-2 text-3xl font-extrabold">{{ spo2_stat.value }}</p>
+      <span class="mt-3 inline-flex rounded-full border-2 px-3 py-1 text-sm font-extrabold
+        {% if spo2_stat.tone == 'danger' %}border-red-800 bg-red-100 text-red-950
+        {% elif spo2_stat.tone == 'warning' %}border-amber-800 bg-amber-100 text-amber-950
+        {% elif spo2_stat.tone == 'normal' %}border-green-800 bg-green-100 text-green-950
+        {% else %}border-slate-500 bg-slate-100 text-slate-900{% endif %}">
+        {% if spo2_stat.tone == 'danger' %}Below 94% — seek urgent medical advice{% elif spo2_stat.tone == 'warning' %}Below 96% — monitor closely{% elif spo2_stat.tone == 'normal' %}Recorded{% else %}No reading yet{% endif %}
+      </span>
+    </article>
+    <article class="rounded-xl border-2 border-slate-300 bg-white p-5 shadow-sm">
+      <p class="font-bold text-slate-800">Pulse</p>
+      <p class="mt-2 text-3xl font-extrabold">{{ pulse_stat.value }}</p>
+      <span class="mt-3 inline-flex rounded-full border-2 border-slate-500 bg-slate-100 px-3 py-1 text-sm font-extrabold text-slate-900">
+        {% if has_pulse %}Recorded{% else %}No reading yet{% endif %}
+      </span>
+    </article>
+    <article class="rounded-xl border-2 border-slate-300 bg-white p-5 shadow-sm">
+      <p class="font-bold text-slate-800">Blood glucose</p>
+      <p class="mt-2 text-3xl font-extrabold">{{ glucose_stat.value }}</p>
+      <span class="mt-3 inline-flex rounded-full border-2 border-slate-500 bg-slate-100 px-3 py-1 text-sm font-extrabold text-slate-900">
+        {% if has_glucose %}Recorded · use your clinician's unit{% else %}No reading yet{% endif %}
+      </span>
+    </article>
+  </div>
+  <p class="mt-3 text-sm text-slate-700">Reading indicators are general prompts, not a diagnosis. Follow your clinician's advice and seek urgent care for concerning symptoms.</p>
+</section>
+
+<section class="mt-6 rounded-xl border-2 border-slate-300 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="lifestyle-heading">
+  <h2 class="text-xl font-extrabold" id="lifestyle-heading">Daily lifestyle log</h2>
+  <p class="mb-4 text-slate-700">Record water intake and calories for {{ profile.full_name }}.</p>
+  {% if lifestyle_form.errors %}
+    <div class="mb-4 rounded-lg border-2 border-red-800 bg-red-50 p-4 text-red-950" role="alert">
+      <h3 class="font-extrabold">Lifestyle log was not saved</h3>
+      {{ lifestyle_form.errors }}
+      {{ lifestyle_form.non_field_errors }}
+    </div>
+  {% endif %}
+  <form method="post" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {% csrf_token %}
+    <input type="hidden" name="form_name" value="lifestyle">
+    {% for field in lifestyle_form %}
+      <div>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<p class="mt-1 text-sm text-slate-700">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p class="font-bold text-red-800" role="alert">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <div class="flex items-end">
+      <button class="min-h-12 rounded-lg bg-teal-900 px-5 font-extrabold text-white" type="submit">Save daily log</button>
+    </div>
+  </form>
+</section>
+
+<section class="mt-8 grid gap-5 lg:grid-cols-2" aria-label="Vital trends">
+  <article class="rounded-xl border-2 border-slate-300 bg-white p-4 shadow-sm sm:p-6">
+    <h2 class="text-xl font-extrabold">Blood pressure trend</h2>
+    <p class="mb-4 text-base text-slate-700">Systolic and diastolic readings (mmHg), last 30 days.</p>
+    <div class="relative h-72"><canvas id="bp-chart" data-chart-data-url="{% url 'vitals:chart_data_api' %}" role="img" aria-label="Line chart showing blood pressure trends for the last 30 days"></canvas></div>
+  </article>
+  <article class="rounded-xl border-2 border-slate-300 bg-white p-4 shadow-sm sm:p-6">
+    <h2 class="text-xl font-extrabold">Blood oxygen trend</h2>
+    <p class="mb-4 text-base text-slate-700">SpO2 readings (percent), last 30 days. Below 94% is flagged for attention.</p>
+    <div class="relative h-72"><canvas id="spo2-chart" role="img" aria-label="Line chart showing blood oxygen trends for the last 30 days"></canvas></div>
+  </article>
+  <p class="lg:col-span-2 text-sm font-medium text-slate-700" id="chart-error" role="status" aria-live="polite"></p>
+</section>
+
+<dialog id="vitals-modal" class="w-[min(42rem,calc(100%-2rem))] rounded-2xl border-2 border-slate-400 p-0 shadow-2xl" aria-labelledby="modal-heading">
+  <div class="flex items-start justify-between gap-3 border-b-2 border-slate-200 p-5">
+    <div>
+      <h2 class="text-2xl font-extrabold" id="modal-heading">Log today's readings</h2>
+      <p class="text-slate-700">For {{ profile.full_name }}. Leave a field blank if you did not measure it.</p>
+    </div>
+    <button class="min-h-12 min-w-12 rounded-lg border-2 border-slate-600 text-2xl font-bold" type="button" id="close-vitals-modal" aria-label="Close form">×</button>
+  </div>
+  <form method="post" class="space-y-4 p-5">
+    {% csrf_token %}
+    <input type="hidden" name="form_name" value="vitals">
+    {% if vitals_form.errors %}
+      <div class="rounded-lg border-2 border-red-800 bg-red-50 p-4 text-red-950" role="alert">
+        <h3 class="font-extrabold">Vitals were not saved</h3>
+        {{ vitals_form.errors }}
+        {{ vitals_form.non_field_errors }}
+      </div>
+    {% endif %}
+    {% for field in vitals_form %}
+      <div>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<p class="mt-1 text-sm text-slate-700">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p class="font-bold text-red-800" role="alert">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    {% if vitals_form.non_field_errors %}<div class="font-bold text-red-800" role="alert">{{ vitals_form.non_field_errors }}</div>{% endif %}
+    <div class="flex flex-wrap justify-end gap-3 pt-2">
+      <button class="min-h-12 rounded-lg border-2 border-slate-600 px-5 font-bold" type="button" id="cancel-vitals-modal">Cancel</button>
+      <button class="min-h-12 rounded-lg bg-teal-900 px-5 font-extrabold text-white" type="submit">Save readings</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/charts.js' %}" defer></script>
+{% endblock %}

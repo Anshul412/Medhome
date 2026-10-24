@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Emergency ICE card | MedHome</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 p-4 text-slate-900">
+  <main class="mx-auto max-w-xl rounded-xl bg-white p-6 shadow-sm">
+    <p class="text-sm font-semibold uppercase tracking-wide text-red-700">In Case of Emergency</p>
+    <h1 class="mt-2 text-2xl font-semibold">{{ profile.full_name }}</h1>
+    {% if profile.dob %}<p class="mt-3"><strong>Date of birth:</strong> {{ profile.dob }}</p>{% endif %}
+    {% if profile.blood_group %}<p class="mt-2"><strong>Blood group:</strong> {{ profile.get_blood_group_display }}</p>{% endif %}
+    {% if profile.chronic_conditions %}
+      <section class="mt-5 border-t border-slate-200 pt-4">
+        <h2 class="font-semibold">Chronic conditions</h2>
+        <p class="mt-1 whitespace-pre-line">{{ profile.chronic_conditions }}</p>
+      </section>
+    {% endif %}
+    {% if profile.emergency_notes %}
+      <section class="mt-5 border-t border-slate-200 pt-4">
+        <h2 class="font-semibold">Emergency notes</h2>
+        <p class="mt-1 whitespace-pre-line">{{ profile.emergency_notes }}</p>
+      </section>
+    {% endif %}
+    <section class="mt-5 border-t border-slate-200 pt-4">
+      <h2 class="font-semibold">Emergency contacts</h2>
+      <ol class="mt-2 space-y-3">
+        {% for item in contacts %}
+          <li>
+            <span class="font-medium">{{ item.contact.name }}</span>{% if item.contact.relationship %} · {{ item.contact.relationship }}{% endif %}
+            {% if item.tel_target %}<a class="ml-2 text-teal-700 underline" href="tel:{{ item.tel_target }}">Call {{ item.contact.phone_number }}</a>{% else %}<span>{{ item.contact.phone_number }}</span>{% endif %}
+          </li>
+        {% empty %}
+          <li>No emergency contacts are listed.</li>
+        {% endfor %}
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Emergency | MedHome{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-sm">
+  <h1 class="text-2xl font-semibold">Emergency contacts</h1>
+  <p class="mt-1 text-slate-600">Profile: {{ profile.full_name }}</p>
+  {% if emergency_number %}
+    <a class="mt-6 block rounded-lg bg-red-700 px-5 py-4 text-center text-lg font-semibold text-white" href="tel:{{ emergency_number }}">Call emergency services ({{ emergency_number }})</a>
+  {% else %}
+    <p class="mt-4 text-red-700">Emergency number is not configured.</p>
+  {% endif %}
+  <ol class="mt-6 space-y-3">
+    {% for contact in contacts %}
+      <li class="flex items-center justify-between gap-3 rounded border border-slate-200 p-4">
+        <span><strong>{{ contact.contact.priority }}. {{ contact.contact.name }}</strong>{% if contact.contact.relationship %} · {{ contact.contact.relationship }}{% endif %}</span>
+        {% if contact.tel_target %}<a class="rounded bg-teal-700 px-4 py-2 text-white" href="tel:{{ contact.tel_target }}">Call</a>{% endif %}
+      </li>
+    {% empty %}
+      <li>No emergency contacts are recorded.</li>
+    {% endfor %}
+  </ol>
+  <section class="mt-8 rounded bg-slate-50 p-4">
+    <h2 class="font-semibold">Public ICE card</h2>
+    <p class="mt-1 break-all text-sm text-slate-600">Anyone with this link can see its approved emergency details. Share it only with people you trust.</p>
+    <a class="mt-2 inline-block text-teal-700 underline" href="{{ ice_url }}">Open ICE card</a>
+    <form class="mt-3" method="post" action="{% url 'emergency:rotate_ice_token' %}">
+      {% csrf_token %}
+      <button class="text-sm text-red-700 underline" type="submit">Invalidate this link and create a new one</button>
+    </form>
+  </section>
+</section>
+{% endblock %}

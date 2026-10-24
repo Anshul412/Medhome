@@ -1,0 +1,95 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block coltype %}colM{% endblock %}
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+
+{% block content %}
+  <section class="admin-welcome">
+    <div>
+      <p class="admin-eyebrow">MEDHOME · CARE ADMINISTRATION</p>
+      <h1>Healthcare records</h1>
+      <p>Manage patient profiles and the clinical information connected to their care.</p>
+    </div>
+    <div class="admin-welcome-mark" aria-hidden="true">+</div>
+  </section>
+
+  {% if app_list %}
+    <section class="admin-records" aria-label="Registered database records">
+      {% for app in app_list %}
+        <article class="admin-record-group">
+          <header class="admin-record-heading">
+            <span class="admin-record-icon" aria-hidden="true">{{ app.name|first|upper }}</span>
+            <div>
+              <h2>{{ app.name }}</h2>
+              <p>Manage {{ app.models|length }} record type{{ app.models|length|pluralize }}</p>
+            </div>
+          </header>
+          <ul class="admin-record-list">
+            {% for model in app.models %}
+              <li>
+                <div class="admin-record-model">
+                  {% if model.admin_url %}
+                    <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                    <span>Review and manage records</span>
+                  {% else %}
+                    <span>{{ model.name }}</span>
+                  {% endif %}
+                </div>
+                <div class="admin-record-actions">
+                  {% if model.add_url %}
+                    <a class="admin-add-action" href="{{ model.add_url }}">Add</a>
+                  {% endif %}
+                  {% if model.admin_url %}
+                    {% if model.view_only %}
+                      <a class="admin-view-action" href="{{ model.admin_url }}">View</a>
+                    {% else %}
+                      <a class="admin-view-action" href="{{ model.admin_url }}">Open</a>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </article>
+      {% endfor %}
+    </section>
+  {% else %}
+    <div class="admin-empty-state">
+      <h2>No records available</h2>
+      <p>Your account does not have permission to view or manage any registered models.</p>
+    </div>
+  {% endif %}
+
+  {% if user.is_authenticated %}
+    <section class="admin-recent-actions">
+      <h2>Recent activity</h2>
+      {% load log %}
+      {% get_admin_log 8 as admin_log for_user user %}
+      {% if admin_log %}
+        <ul class="admin-activity-list">
+          {% for entry in admin_log %}
+            <li>
+              <span class="admin-activity-marker {% if entry.is_addition %}is-addition{% elif entry.is_deletion %}is-deletion{% endif %}" aria-hidden="true"></span>
+              <div>
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                  <strong>{{ entry.object_repr }}</strong>
+                {% else %}
+                  <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                {% endif %}
+                <span>{{ entry.content_type.name|default:"Record" }} · {{ entry.action_time|date:"M j, Y, g:i a" }}</span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="admin-empty-activity">No recent actions for this account.</p>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}
+
+{% block sidebar %}{% endblock %}

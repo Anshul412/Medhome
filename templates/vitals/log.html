@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Vitals | MedHome{% endblock %}
+{% block content %}
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="rounded-xl bg-white p-6 shadow-sm">
+    <h1 class="mb-5 text-2xl font-semibold">Log vitals for {{ profile.full_name }}</h1>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="form_name" value="vitals">
+      {% if vitals_form.errors %}<div class="rounded border-2 border-red-800 bg-red-50 p-3 text-red-950" role="alert">{{ vitals_form.errors }}{{ vitals_form.non_field_errors }}</div>{% endif %}
+      {{ vitals_form.as_p }}
+      <button class="rounded bg-teal-700 px-4 py-2 font-medium text-white" type="submit">Save vitals</button>
+    </form>
+  </section>
+  <section class="rounded-xl bg-white p-6 shadow-sm">
+    <h2 class="mb-5 text-xl font-semibold">Daily lifestyle</h2>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="form_name" value="lifestyle">
+      {% if lifestyle_form.errors %}<div class="rounded border-2 border-red-800 bg-red-50 p-3 text-red-950" role="alert">{{ lifestyle_form.errors }}{{ lifestyle_form.non_field_errors }}</div>{% endif %}
+      {{ lifestyle_form.as_p }}
+      <button class="rounded bg-teal-700 px-4 py-2 font-medium text-white" type="submit">Save daily log</button>
+    </form>
+  </section>
+</div>
+<section class="mt-6 rounded-xl bg-white p-6 shadow-sm">
+  <h2 class="mb-4 text-xl font-semibold">Vitals trends (last 30 days)</h2>
+  <canvas id="vitals-chart" aria-label="Vitals trend chart"></canvas>
+  <p id="chart-error" class="mt-3 text-sm text-red-700" role="alert"></p>
+</section>
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  fetch("{% url 'vitals:chart_data' %}", {headers: {"Accept": "application/json"}})
+    .then((response) => {
+      if (!response.ok) throw new Error("Could not load vitals chart data.");
+      return response.json();
+    })
+    .then((data) => {
+      const context = document.getElementById("vitals-chart");
+      new Chart(context, {
+        type: "line",
+        data: {
+          labels: data.dates,
+          datasets: [
+            {label: "Systolic BP", data: data.systolic, yAxisID: "bp"},
+            {label: "Diastolic BP", data: data.diastolic, yAxisID: "bp"},
+            {label: "SpO2 (%)", data: data.spo2, yAxisID: "oxygen"},
+            {label: "Blood glucose", data: data.blood_glucose, yAxisID: "glucose"}
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            bp: {type: "linear", position: "left", title: {display: true, text: "Blood pressure (mmHg)"}},
+            oxygen: {type: "linear", position: "right", min: 0, max: 100, title: {display: true, text: "SpO2 (%)"}},
+            glucose: {type: "linear", position: "right", title: {display: true, text: "Blood glucose (recorded unit)"}}
+          }
+        }
+      });
+    })
+    .catch((error) => {
+      document.getElementById("chart-error").textContent = error.message;
+    });
+</script>
+{% endblock %}

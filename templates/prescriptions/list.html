@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Medical vault | MedHome{% endblock %}
+{% block content %}
+<section class="rounded-xl bg-white p-6 shadow-sm">
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold">Medical vault</h1>
+      <p class="text-slate-600">{{ profile.full_name }} · active conditions</p>
+    </div>
+    <a class="rounded bg-teal-700 px-4 py-2 font-medium text-white" href="{% url 'prescriptions:upload' %}">Upload prescription</a>
+  </div>
+  {% for condition in conditions %}
+    <article class="border-t border-slate-200 py-5">
+      <h2 class="text-lg font-semibold">
+        <a class="text-teal-700 underline" href="{% url 'prescriptions:condition_detail' condition.pk %}">{{ condition.name }}</a>
+      </h2>
+      <p class="text-sm text-slate-600">Diagnosed: {{ condition.diagnosed_date|default:"Not recorded" }}</p>
+      {% for prescription in condition.prescriptions.all %}
+        <div class="mt-3 rounded bg-slate-50 p-3">
+          <p>Issued: {{ prescription.issued_date|default:"Not recorded" }} · {{ prescription.doctor_name|default:"Doctor not recorded" }}</p>
+          {% if prescription.prescription_file %}
+            <a class="text-sm text-teal-700 underline" href="{% url 'prescriptions:document' prescription.pk %}">Download protected document</a>
+          {% endif %}
+          <ul class="mt-2 list-inside list-disc text-sm">
+            {% for medication in prescription.medications.all %}
+              <li>{{ medication.medicine_name }} — {{ medication.dosage }}, {{ medication.frequency }}</li>
+            {% empty %}
+              <li>No medication items recorded.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% empty %}
+        <p class="mt-2 text-sm text-slate-500">No prescriptions recorded for this condition.</p>
+      {% endfor %}
+    </article>
+  {% empty %}
+    <p>No active conditions are recorded for this profile.</p>
+  {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ condition.name }} | Medical vault{% endblock %}
+{% block content %}
+<section class="rounded-xl bg-white p-6 shadow-sm">
+  <a class="text-sm text-teal-700 underline" href="{% url 'prescriptions:list' %}">Back to medical vault</a>
+  <h1 class="my-3 text-2xl font-semibold">{{ condition.name }}</h1>
+  <p class="text-slate-600">Diagnosed: {{ condition.diagnosed_date|default:"Not recorded" }} · {% if condition.is_active %}Active{% else %}Inactive{% endif %}</p>
+  {% for prescription in condition.prescriptions.all %}
+    <article class="mt-5 border-t border-slate-200 pt-4">
+      <h2 class="font-semibold">Prescription issued {{ prescription.issued_date|default:"date not recorded" }}</h2>
+      <p>{{ prescription.doctor_name }}{% if prescription.clinic_name %} · {{ prescription.clinic_name }}{% endif %}</p>
+      {% if prescription.prescription_file %}
+        <a class="text-teal-700 underline" href="{% url 'prescriptions:document' prescription.pk %}">Download protected document</a>
+      {% endif %}
+      {% if prescription.notes %}<p class="mt-2">{{ prescription.notes }}</p>{% endif %}
+      <h3 class="mt-3 font-medium">Medications</h3>
+      <ul class="list-inside list-disc">
+        {% for medication in prescription.medications.all %}
+          <li>{{ medication.medicine_name }} — {{ medication.dosage }} · {{ medication.frequency }}{% if medication.duration_days %} · {{ medication.duration_days }} days{% endif %}</li>
+        {% empty %}
+          <li>No medication items recorded.</li>
+        {% endfor %}
+      </ul>
+    </article>
+  {% empty %}
+    <p class="mt-5">No prescription history recorded.</p>
+  {% endfor %}
+</section>
+{% endblock %}

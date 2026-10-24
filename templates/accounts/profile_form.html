@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{% if profile %}Edit patient profile{% else %}Create patient profile{% endif %} | MedHome{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-sm">
+  <h1 class="mb-6 text-2xl font-semibold">{% if profile %}Edit patient profile{% else %}Create a patient profile{% endif %}</h1>
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    {% if form.errors %}
+      <div class="rounded-lg border-2 border-red-800 bg-red-50 p-4 text-red-950" role="alert">
+        <h2 class="font-bold">Patient profile was not saved</h2>
+        {{ form.errors }}
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+    {{ form.as_p }}
+    <button class="rounded bg-teal-700 px-4 py-2 font-medium text-white" type="submit">{% if profile %}Save changes{% else %}Save profile{% endif %}</button>
+  </form>
+  {% if profile %}
+    <a class="mt-5 inline-block text-teal-700 underline" href="{% url 'accounts:profile_detail' %}">Back to patient profile</a>
+  {% endif %}
+</section>
+{% endblock %}

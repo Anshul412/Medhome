@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Sign in | MedHome{% endblock %}
+{% block main_class %}mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8{% endblock %}
+{% block content %}
+<section class="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5 md:grid-cols-2">
+  <aside class="relative hidden overflow-hidden bg-gradient-to-br from-teal-800 via-teal-700 to-emerald-700 p-10 text-white md:flex md:flex-col md:justify-between">
+    <div class="absolute -right-20 -top-24 h-72 w-72 rounded-full border-[40px] border-white/10" aria-hidden="true"></div>
+    <div class="relative">
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold text-teal-50">Connected care, centered at home</span>
+      <h2 class="mt-8 text-4xl font-extrabold leading-tight">Welcome back to your care circle.</h2>
+      <p class="mt-4 text-lg leading-8 text-teal-50">Keep your family's health information, reminders, and care coordination in one place.</p>
+    </div>
+    <div class="relative rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur">
+      <p class="text-sm font-semibold text-teal-100">Your portal, at a glance</p>
+      <p class="mt-2 text-2xl font-bold">Health details, thoughtfully organized.</p>
+    </div>
+  </aside>
+  <div class="p-6 sm:p-10">
+    <a class="text-sm font-bold text-teal-800 hover:underline" href="{% url 'home' %}">← MedHome home</a>
+    <p class="mt-8 text-sm font-bold uppercase tracking-wider text-teal-700">Member portal</p>
+    <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-950">Sign in</h1>
+    <p class="mt-2 text-slate-600">Welcome back. Sign in to continue to your profile.</p>
+    <form method="post" class="mt-7 space-y-4">
+      {% csrf_token %}
+      {% if form.errors %}
+        <div class="rounded-xl border border-rose-300 bg-rose-50 p-4 text-rose-950" role="alert">
+          <h2 class="font-bold">We couldn't sign you in</h2>
+          {{ form.errors }}
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+      {% for field in form %}
+        {% if field.name != 'next' %}
+          <div>
+            <label class="!mb-1 !mt-0" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}<p class="mt-1 text-sm font-semibold text-rose-700" role="alert">{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-teal-700 px-5 py-3 font-bold text-white shadow-sm transition hover:bg-teal-800 hover:shadow-md" type="submit">Sign In</button>
+    </form>
+    <p class="mt-6 text-center text-sm text-slate-600">New to MedHome? <a class="font-bold text-teal-800 hover:underline" href="{% url 'accounts:signup' %}">Register your family</a></p>
+  </div>
+</section>
+{% endblock %}
